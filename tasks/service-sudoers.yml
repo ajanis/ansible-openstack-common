@@ -1,0 +1,22 @@
+---
+- name: create service users
+  user:
+    name: '{{ item }}'
+    shell: /bin/bash
+    system: yes
+    state: present
+    home: '/var/lib/{{ item }}'
+  with_items: '{{ openstack_services }}'
+
+- name: Set ulimit for service user
+  copy:
+    dest: '/etc/security/limits.d/{{item}}.conf'
+    content: '{{item}} soft  nofile  64000'
+    mode: 0644
+  with_items: '{{ openstack_services }}'
+
+- name: Create custom sudoers config
+  template:
+    src: service_sudoers.j2
+    dest: '/etc/sudoers.d/{{ item }}'
+  with_items: '{{ openstack_sudoers }}'

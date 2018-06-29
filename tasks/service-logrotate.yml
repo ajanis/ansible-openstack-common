@@ -1,0 +1,5 @@
+- name: Copy service logrotate configs
+  template:
+    src: 'logrotate.j2'
+    dest: '/etc/logrotate.d/{{ item }}'
+  with_items: '{{ openstack_services }}'

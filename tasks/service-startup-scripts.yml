@@ -1,0 +1,23 @@
+- name: copy /etc/init files
+  copy:
+    src: 'init/{{ item }}.conf'
+    dest: '/etc/init/{{ item }}.conf'
+    mode: 0755
+  with_items: '{{ openstack_service_daemons }}'
+
+- name: copy /etc/init.d files
+  copy:
+    src: 'init.d/{{ item }}'
+    dest: '/etc/init.d/{{ item }}'
+    mode: 0755
+  with_items: '{{ openstack_service_daemons }}'
+
+- name: copy /lib/systemd/system files
+  copy:
+    src: 'systemd/{{ item }}.service'
+    dest: '/lib/systemd/system/{{ item }}.service'
+    mode: 0755
+  with_items: '{{ openstack_service_daemons }}'
+
+- name: Update systemctl 
+  command: systemctl daemon-reload

@@ -1,0 +1,8 @@
+- name: Deploy openstack project and user data
+  hosts: openstack_util
+  become: True
+  gather_facts: True
+  tasks:
+    - include_role:
+        name: openstack-common
+        tasks_from: openstack_data.yml

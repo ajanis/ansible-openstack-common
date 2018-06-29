@@ -1,0 +1,12 @@
+---
+- name: copy service conf directories
+  copy:
+    src: '{{ item.value.src }}'
+    dest: '{{ item.value.dest }}'
+  with_dict: '{{ service_files }}'
+
+- name: copy config templates
+  template:
+    src: '{{ item.value.src }}'
+    dest: '{{ item.value.dest }}'
+  with_dict: '{{ config_files }}'

@@ -1,0 +1,25 @@
+---
+- name: clone git repositories
+  git:
+    repo: 'https://github.com/openstack/{{ item }}.git'
+    version: '{{openstack_version}}'
+    dest: '/srv/{{ item }}'
+  with_items: '{{ openstack_source_projects }}'
+  register: module_checkout
+
+- name: install pip packages
+  pip:
+    requirements: requirements.txt
+    state: present
+    virtualenv: "/opt/{{item}}"
+    chdir: "/srv/{{item}}"
+  with_items: "{{ openstack_source_projects }}"
+  when: module_checkout.changed
+
+- name: build and install openstack libs
+  pip:
+    name: .
+    virtualenv: "/opt/{{item}}"
+    chdir: "/srv/{{item}}"
+  with_items: "{{ openstack_source_projects }}"
+  when: module_checkout.changed

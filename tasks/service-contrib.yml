@@ -1,0 +1,12 @@
+---
+- name: copy contrib files
+  copy:
+    src: '{{ item.value.src }}'
+    dest: '{{ item.value.dest }}'
+  with_dict: '{{ contrib_files }}'
+
+- name: Create service symlinks
+  shell: 'ln -s /opt/{{item}}/bin/{{item}}* /usr/local/bin/'
+  args:
+    executable: /bin/bash
+  with_items: '{{ openstack_services }}'

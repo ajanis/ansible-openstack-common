@@ -1,0 +1,52 @@
+---
+- name: Create apt cloud.list
+  apt_repository:
+    repo: deb [arch=amd64] http://raas-vip.ccg22.paypalc3.com/repos/cloud/puppet-config/apt all main
+    filename: cloud.list
+    state: absent
+
+- name: Create apt cloud.list
+  apt_repository:
+    repo: deb [arch=amd64, trusted=true] http://raas-vip.ccg22.paypalc3.com/repos/cloud/stackconf/apt/ all main
+    filename: cloud.list
+    state: present
+
+- name: Create apt cloud.list
+  apt_repository:
+    repo: deb [arch=amd64, trusted=true] http://raas-vip.ccg22.paypalc3.com/repos/apps/docker/ubuntu/16 all main
+    filename: cloud.list
+    state: present
+
+- name: Create apt cloud.list
+  apt_repository:
+    repo: deb [arch=amd64, trusted=true] http://raas-vip.ccg22.paypalc3.com/repos/cloud/openstack/apt/16/nova all main
+    filename: cloud.list
+    state: present
+
+- name: Create apt cloud.list
+  apt_repository:
+    repo: deb [arch=amd64, trusted=true] http://raas-vip.ccg22.paypalc3.com/repos/cloud/openstack/apt/16/neutron all main
+    filename: cloud.list
+    state: present
+
+- name: Install docker-ce
+  apt:
+    name: docker-ce
+    state: present
+    update_cache: yes
+
+# Broken unless python Docker package is installed from pip
+#- name: install docker-py
+#  apt:
+#    name: python3-docker
+#    state: present
+#
+#- name: deploy service container
+#  docker_container:
+#    name: "{{ item.key }}"
+#    image: "{{ item.value.image }}"
+#    state: present
+#    recreate: yes
+#    published_ports: "{{ item.value.ports }}"
+#    volumes: "{{ item.value.volumes }}"
+#  with_dict: "{{ docker_containers }}"

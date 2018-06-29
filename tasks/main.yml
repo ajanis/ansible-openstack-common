@@ -1,0 +1,16 @@
+---
+- name: Gather all facts
+  setup:
+
+- name: Add Relevant hosts
+  lineinfile:
+    dest: /etc/hosts
+    line: "{{ hostvars[item].ansible_default_ipv4.address }} {{ hostvars[item].ansible_hostname }} {{ hostvars[item].ansible_fqdn }}"
+    regexp: '^{{ hostvars[item].ansible_default_ipv4.address }}.*'
+  with_items: "{{ ansible_play_hosts }}"
+
+- name: Add sysctl tweaks
+  copy:
+    src: 100-openstack.conf
+    dest: /etc/sysctl.d/100-openstack.conf
+  notify: write sysctl

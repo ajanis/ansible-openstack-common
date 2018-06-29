@@ -1,0 +1,36 @@
+---
+- name: create service conf directories
+  file:
+    path: '/etc/{{ item }}'
+    state: directory
+  with_items: '{{ openstack_services }}'
+
+- name: create service lock directories
+  file:
+    path: '/var/lock/{{ item }}'
+    state: directory
+  with_items: '{{ openstack_services }}'
+
+- name: create service tmp directories
+  file:
+    path: '/var/lib/{{ item }}/tmp'
+    state: directory
+  with_items: '{{ openstack_services }}'
+
+- name: create service www directories
+  file:
+    path: '/var/www/{{ item }}'
+    state: directory
+  with_items: '{{ openstack_services }}'
+
+- name: create service uwsgi directories
+  file:
+    path: '/run/uwsgi/{{ item }}'
+    state: directory
+  with_items: '{{ openstack_services }}'
+
+- name: create service log directories
+  file:
+    path: '/var/log/{{ item }}'
+    state: directory
+  with_items: '{{ openstack_services }}'

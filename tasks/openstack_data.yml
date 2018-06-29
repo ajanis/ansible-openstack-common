@@ -1,0 +1,259 @@
+---
+- name: "Install shade python module"
+  pip:
+    name: shade
+    executable: /usr/bin/pip
+
+- name: Create openstack directory
+  file:
+    dest: /root/.config/openstack
+    state: directory
+    
+- name: Create cloud-config file
+  template:
+    src: clouds.yml.j2
+    dest: /root/.config/openstack/clouds.yml
+
+- name: Download Cirros Image
+  get_url:
+    url: http://10.253.63.4/cirros/cirros-0.4.0-x86_64-disk.img
+    dest: /root/cirros-0.4.0-x86_64-disk.img
+    mode: 0644
+  register: cirros_download
+
+- name: Import Cirros Glance Image
+  os_image:
+    cloud: default
+    name: cirros
+    container_format: bare
+    disk_format: qcow2
+    state: present
+    filename: cirros-0.4.0-x86_64-disk.img
+    is_public: yes
+    kernel: cirros-vmlinuz
+    ramdisk: cirros-initrd
+    properties:
+      cpu_arch: x86_64
+      distro: ubuntu
+    validate_certs: no
+  when: cirros_download | changed
+
+- name: Download Ubuntu Xenial Image
+  get_url:
+    url: http://10.253.63.4/ubuntu_16.04.3/xenial-server-cloudimg-amd64-disk1.img
+    dest: /root/xenial-server-cloudimg-amd64-disk1.img
+    mode: 0644
+  register: xenial_download
+
+- name: Import Ubuntu Xenial image into Glance
+  os_image:
+    cloud: default
+    name: xenial
+    container_format: bare
+    disk_format: qcow2
+    state: present
+    filename: xenial-server-cloudimg-amd64-disk1.img
+    is_public: yes
+    kernel: xenial-server-cloudimg-amd64-vmlinuz-generic
+    ramdisk: xenial-server-cloudimg-amd64-initrd-generic
+    min_disk: 5
+    min_ram: 1024
+    properties:
+      cpu_arch: x86_64
+      distro: ubuntu
+    validate_certs: no
+  when: xenial_download | changed
+
+- name: Download Ubuntu Xenial Stress-ng Image
+  get_url:
+    url: http://10.253.63.4/ubuntu_16.04.3/xenial-server-stressng.img
+    dest: /root/xenial-server-stressng.img
+    mode: 0644
+  register: xenial_stressng_download
+
+- name: Import Ubuntu Xenial Stress-ng image into Glance
+  os_image:
+    cloud: default
+    name: xenial
+    container_format: bare
+    disk_format: qcow2
+    state: present
+    filename: xenial-server-stressng.img
+    is_public: yes
+    min_disk: 5
+    min_ram: 1024
+    properties:
+      cpu_arch: x86_64
+      distro: ubuntu
+    validate_certs: no
+  when: xenial_stressng_download | changed
+
+- name: Create provider network
+  os_network:
+    cloud: default
+    name: network1
+    state: present
+    external: true
+    provider_physical_network: provider
+    provider_network_type: flat
+    shared: yes
+    validate_certs: no
+
+- name: Create provider subnet "{{ item.key }}"
+  os_subnet:
+    cloud: default
+    state: present
+    network_name: network1
+    name: "{{ item.key }}"
+    cidr: "{{ item.key }}"
+    gateway_ip: "{{ item.value.gateway_ip }}"
+    allocation_pool_start: "{{ item.value.allocation_pool_start }}"
+    allocation_pool_end: "{{ item.value.allocation_pool_end }}"
+    dns_nameservers: "{{ item.value.dns_nameservers }}"
+    validate_certs: no
+  with_dict: "{{provider_subnets}}"
+
+- name: Create m1.nano flavor with 64MB RAM and 1 vCPU and 1GB local disk
+  os_nova_flavor:
+    cloud: default
+    state: present
+    name: m1.nano
+    ram: 64
+    vcpus: 1
+    disk: 1
+    validate_certs: no
+
+- name: Create m1.tiny flavor with 512MB RAM and 1 vCPU and 1GB local disk
+  os_nova_flavor:
+    cloud: default
+    state: present
+    name: m1.tiny
+    ram: 512
+    vcpus: 1
+    disk: 1
+    validate_certs: no
+
+- name: Create m1.small flavor with 2GB RAM and 1 vCPU and 20GB local disk
+  os_nova_flavor:
+    cloud: default
+    state: present
+    name: m1.small
+    ram: 2048
+    vcpus: 1
+    disk: 20
+    validate_certs: no
+
+- name: Create m1.medium flavor with 4GB RAM and 2 vCPUs and 40GB local disk
+  os_nova_flavor:
+    cloud: default
+    state: present
+    name: m1.medium
+    ram: 4096
+    vcpus: 2
+    disk: 40
+    validate_certs: no
+
+- name: Create m1.large flavor with 8GB RAM and 4 vCPUs and 80GB local disk
+  os_nova_flavor:
+    cloud: default
+    state: present
+    name: m1.large
+    ram: 8192
+    vcpus: 4
+    disk: 80
+    validate_certs: no
+
+- name: Create m1.xlarge flavor with 16GB RAM and 8 vCPUs and 160GB local disk
+  os_nova_flavor:
+    cloud: default
+    state: present
+    name: m1.xlarge
+    ram: 16384
+    vcpus: 8
+    disk: 160
+    validate_certs: no
+
+- name: Create OpenStack keypair
+  os_keypair:
+    cloud: default
+    state: present
+    name: key1
+    public_key: "{{ os_public_key }}"
+    validate_certs: no
+
+- name: create ping rule
+  os_security_group_rule:
+    cloud: default
+    security_group: default
+    protocol: icmp
+    remote_ip_prefix: 0.0.0.0/0
+    validate_certs: no
+
+- name: create ssh rule
+  os_security_group_rule:
+    cloud: default
+    security_group: default
+    protocol: tcp
+    port_range_min: 22
+    port_range_max: 22
+    remote_ip_prefix: 0.0.0.0/0
+    validate_certs: no
+
+- name: Update quotas
+  os_quota:
+    name: "{{ item.name }}"
+    cores: "{{ item.cores }}"
+    fixed_ips: "{{ item.fixed_ips }}"
+    floating_ips: "{{ item.floating_ips }}"
+    gigabytes: "{{ item.gigabytes }}"
+    injected_file_size: "{{ item.injected_file_size }}"
+    injected_files: "{{ item.injected_files }}"
+    injected_path_size: "{{ item.injected_path_size }}"
+    instances: "{{ item.instances }}"
+    key_pairs: "{{ item.key_pairs }}"
+    port: "{{ item.ports }}"
+    properties: "{{ item.properties }}"
+    ram: "{{ item.ram }}"
+    security_group_rule: "{{ item.security_group_rule }}"
+    security_group: "{{ item.security_group }}"
+    server_group_members: "{{ item.server_group_members }}"
+    server_groups: "{{ item.server_groups }}"
+  with_items:
+    - "{{ projects }}"
+  when: item.state == "present"
+
+#- name: set admin quota
+#  os_quota:
+#    cloud: default
+#    name: admin
+#    cores: -1
+#    instances: -1
+#    key_pairs: -1
+#    ram: -1
+#    server_group_members: -1
+#    server_groups: -1
+#    rbac_policy: -1
+#    port: -1
+#    injected_files: -1
+#    injected_file_size: -1
+#    injected_path_size: -1
+#    floating_ips: -1
+#    properties: -1
+#
+#- name: set service quota
+#  os_quota:
+#    cloud: default
+#    name: service
+#    cores: -1
+#    instances: -1
+#    key_pairs: -1
+#    ram: -1
+#    server_group_members: -1
+#    server_groups: -1
+#    rbac_policy: -1
+#    port: -1
+#    injected_files: -1
+#    injected_file_size: -1
+#    injected_path_size: -1
+#    floating_ips: -1
+#    properties: -1
