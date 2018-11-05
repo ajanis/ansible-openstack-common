@@ -1,0 +1,9 @@
+- name: Deploy openstack memcached
+  hosts: openstack_memcached
+  become: True
+  tasks:
+    - include_role:
+        name: openstack
+        tasks_from: common.yml
+    - include_role:
+        name: memcached

@@ -1,0 +1,7 @@
+- name: Deploy openstack compute infrastructure
+  hosts: openstack_controllers
+  become: True
+  gather_facts: True
+  tasks:
+    - include_role:
+        name: openstack

@@ -1,0 +1,7 @@
+- name: Deploy openstack keystone
+  hosts: openstack_keystone
+  become: True
+  gather_facts: True
+  tasks:
+    - include_role:
+        name: openstack_keystone

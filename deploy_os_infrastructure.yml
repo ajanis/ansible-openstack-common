@@ -1,0 +1,4 @@
+- include: deploy_os_mysql.yml
+- include: deploy_os_memcached.yml
+- include: deploy_os_rabbitmq.yml
+- include: deploy_os_haproxy.yml

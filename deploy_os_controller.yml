@@ -1,0 +1,4 @@
+- include: deploy_os_keystone.yml
+- include: deploy_os_glance.yml
+- include: deploy_os_nova.yml
+- include: deploy_os_neutron.yml

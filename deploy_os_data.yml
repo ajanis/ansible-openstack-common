@@ -1,0 +1,136 @@
+- name: Deploy openstack environment
+  hosts: openstack_utility
+  user: root
+  become: True
+  tasks:
+    - include_role:
+        name: openstack
+        tasks_from: configure_openstack_env_data.yml
+
+- name: Deploy Keystone Fernet and Credential Tokens
+  hosts: openstack_keystone
+  user: root
+  become: True
+  tasks:
+    - name: copy keystone fernet tokens
+      copy:
+        src: "{{ fetch_directory }}/10.253.228.43/etc/keystone/fernet-keys"
+        dest: /etc/keystone/
+        owner: keystone
+        group: keystone
+      notify: restart keystone
+    - name: copy keystone credential keys
+      copy:
+        src: "{{ fetch_directory }}/10.253.228.43/etc/keystone/credential-keys"
+        dest: /etc/keystone/
+        owner: keystone
+        group: keystone
+      notify: restart keystone
+  handlers:
+    - name: restart keystone
+      service: 
+        name: apache2
+        state: restarted
+
+- name: Restart glance services
+  hosts: openstack_glance
+  user: root
+  become: True
+  tasks:
+    - name: restart glance api
+      service:
+        name: glance-api
+        state: restarted
+        enabled: yes
+      when:
+        - new_install | bool
+    - name: restart glance registry
+      service:
+        name: glance-registry
+        state: restarted
+        enabled: yes
+      when:
+        - new_install | bool
+
+- name: Restart compute api services
+  hosts: openstack_compute_infrastructure
+  user: root
+  become: True
+  tasks:
+    - name: restart apache2
+      service:
+        name: apache2
+        state: restarted
+        enabled: yes
+      when:
+        - new_install | bool
+    - name: restart-nova-api
+      service:
+        name: nova-api
+        state: restarted
+        enabled: yes
+      when:
+        - new_install | bool
+    - name: restart-nova-consoleauth
+      service:
+        name: nova-consoleauth
+        state: restarted
+        enabled: yes  
+      when:
+        - new_install | bool
+    - name: restart-nova-scheduler
+      service:
+        name: nova-scheduler
+        state: restarted
+        enabled: yes
+      when:
+        - new_install | bool
+    - name: restart-nova-conductor
+      service:
+        name: nova-conductor
+        state: restarted
+        enabled: yes
+      when:
+        - new_install | bool
+
+- name: Restart neutron api services
+  hosts: openstack_neutron
+  user: root
+  become: True
+  tasks:
+    - name: restart-neutron-server
+      service:
+        name: neutron-server
+        state: restarted
+        enabled: yes
+      when:
+        - new_install | bool
+    - name: restart-neutron-metadata-agent
+      service:
+        name: neutron-metadata-agent
+        state: restarted
+        enabled: yes
+      when:
+        - new_install | bool
+
+- name: Restart identity services
+  hosts: openstack_keystone
+  user: root
+  become: True
+  tasks:
+    - name: restart apache2
+      service:
+        name: apache2
+        state: restarted
+        enabled: yes
+      when:
+        - new_install | bool
+
+- name: Deploy openstack user data
+  hosts: openstack_utility
+  user: root
+  become: True
+  tasks:
+    - include_role:
+        name: openstack
+        tasks_from: configure_openstack_user_data.yml

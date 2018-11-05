@@ -1,0 +1,9 @@
+- name: Deploy openstack rabbitmq
+  hosts: openstack_rabbitmq
+  become: True
+  tasks:
+    - include_role:
+        name: openstack
+        tasks_from: common.yml
+    - include_role:
+        name: rabbitmq

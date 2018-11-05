@@ -1,0 +1,7 @@
+- name: Deploy openstack glance
+  hosts: openstack_glance
+  become: True
+  gather_facts: True
+  tasks:
+    - include_role:
+        name: openstack

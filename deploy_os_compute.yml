@@ -1,0 +1,14 @@
+- name: Deploy openstack compute
+  hosts: openstack_compute
+  become: True
+  gather_facts: True
+  tasks:
+    - include_role:
+        name: openstack
+        tasks_from: common.yml
+    - include_role:
+        name: nfs
+      when: nova_nfs_backend|default(false)|bool
+    - include_role:
+        name: openstack
+        tasks_from: compute.yml

@@ -1,0 +1,7 @@
+- name: Deploy openstack common
+  hosts: atc
+  become: True
+  tasks:
+    - include_role:
+        name: openstack
+        tasks_from: common.yml

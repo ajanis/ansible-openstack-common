@@ -1,0 +1,7 @@
+- name: Build Docker image for Neutron API services
+  hosts: all
+  become: True
+  tasks:
+    - include_role:
+        name: openstack-neutron
+        tasks_from: dockerbuild.yml
